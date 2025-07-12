@@ -31,18 +31,32 @@
             background-color: #3498db;
             border: none;
         }
+        .btn-primary:hover {
+            background-color: #2980b9;
+        }
 
         .btn-success {
             background-color: #2ecc71;
             border: none;
         }
-
-        .btn-primary:hover {
-            background-color: #2980b9;
+        .btn-success:hover {
+            background-color: #27ae60;
         }
 
-        .number {
-            font-weight: bold;
+        .btn-salvar {
+            background-color: #e74c3c;
+            border: none;
+        }
+        .btn-salvar:hover {
+            background-color: #c0392b;
+        }
+
+        .btn-conf {
+            background-color: #8d6e63;
+            border: none;
+        }
+        .btn-conf:hover {
+            background-color: #6d4c41;
         }
 
         .form-control {
@@ -75,138 +89,178 @@
         th {
             background-color: #f2f2f2;
         }
-
-        /* Estilos para el botón Salvar */
-        .btn-salvar {
-            background-color: #e74c3c;
-            border: none;
-        }
-
-        .btn-salvar:hover {
-            background-color: #c0392b;
-        }
-
-        /* Estilos para el botón Whatsapp Web */
-        .btn-whatsapp-web {
-            background-color: #2ecc71;
-            border: none;
-        }
-
-        .btn-whatsapp-web:hover {
-            background-color: #27ae60;
-        }
-        /* Estilos para el botón conf de comentarios*/
-        .btn-conf {
-            background-color: #8d6e63;
-            border: none;
-        }
-
-        .btn-conf:hover {
-            background-color: #6d4c41;
-        }
-        
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="text-center mb-4">
-        <img src="logowha.png" alt="" width="60" align=right><h2 class="mt-3">Enviar a WhatsApp</h2>
-        </div>
 
-        <form action="index.php" method="post">
-            <table>
-                <!-- Filas para Nombre, Teléfono y Mensaje -->
-                <tr>
-                    <th>Nombre:</th>
-                    <td><input type="text" class="form-control" name="nombre" value="<?php echo isset($_POST['nombre']) ? $_POST['nombre'] : ''; ?>" /></td>
+<?php
+/**********************************************
+ * Sección de LÓGICA
+ **********************************************/
 
-                </tr>
-                <tr>
-                    <th>Teléfono:</th>
-                    <td><input type="text" class="form-control" name="telefono" value="<?php echo isset($_POST['telefono']) ? $_POST['telefono'] : ''; ?>" /></td>
-                </tr>
-                <tr>
-                    <th>Mensaje:</th>
-                    <td>
-                        <textarea class="form-control" name="mensaje" cols="50" rows="6"><?php
-                            $comentario = '';
+// Inicializamos variables
+$nombre    = isset($_POST['nombre'])    ? trim($_POST['nombre'])    : '';
+$telefono  = isset($_POST['telefono'])  ? trim($_POST['telefono'])  : '';
+$mensaje   = isset($_POST['mensaje'])   ? trim($_POST['mensaje'])   : '';
+$comentario = '';
 
-                            if (isset($_POST['c1'])) {
-                                $comentarios = unserialize(file_get_contents("comentarios.sav"));
-                                $comentario = $comentarios[1];
-                            } elseif (isset($_POST['c2'])) {
-                                $comentarios = unserialize(file_get_contents("comentarios.sav"));
-                                $comentario = $comentarios[2];
-                            } elseif (isset($_POST['c3'])) {
-                                $comentarios = unserialize(file_get_contents("comentarios.sav"));
-                                $comentario = $comentarios[3];
-                            } elseif (isset($_POST['c4'])) {
-                                $comentarios = unserialize(file_get_contents("comentarios.sav"));
-                                $comentario = $comentarios[4];
-                            }
+// Cargamos los comentarios desde el archivo .sav
+$comentarios = array();
+if (file_exists("comentarios.sav")) {
+    $contenido = file_get_contents("comentarios.sav");
+    if ($contenido !== false) {
+        $comentarios = unserialize($contenido);
+        if (!is_array($comentarios)) {
+            $comentarios = [];
+        }
+    }
+}
 
-                            if (isset($_POST['nombre']) && !empty($_POST['nombre'])) {
-                                $comentario = str_replace("fulanoa", $_POST['nombre'], $comentario);
-                            }
+// Función para cargar el comentario según el botón presionado
+function cargarComentario($comentarios, $indice) {
+    return isset($comentarios[$indice]) ? $comentarios[$indice] : '';
+}
 
-                            if (isset($_POST['salvar']) && isset($_POST['mensaje'])) {
-                                $comentario = $_POST['mensaje'];
-                            }
+// Manejamos la lógica de los botones C1, C2, C3, C4
+if (isset($_POST['c1'])) {
+    $comentario = cargarComentario($comentarios, 1);
+} elseif (isset($_POST['c2'])) {
+    $comentario = cargarComentario($comentarios, 2);
+} elseif (isset($_POST['c3'])) {
+    $comentario = cargarComentario($comentarios, 3);
+} elseif (isset($_POST['c4'])) {
+    $comentario = cargarComentario($comentarios, 4);
+}
 
-                            echo trim($comentario);
-                            ?></textarea>
-                    </td>
-                    <td rowspan="4" style="vertical-align: top;">
-                        <div class="button-group">
-                            <button class='btn btn-small btn-primary' name="c1">C1</button>
-                            <button class='btn btn-small btn-primary' name="c2">C2</button>
-                            <button class='btn btn-small btn-primary' name="c3">C3</button>
-                            <button class='btn btn-small btn-primary' name="c4">C4</button>
-                            <a class='btn btn-small btn-primary btn-conf' href='configuracion.php'>Conf.</a>
+// Si el usuario ingresó nombre, reemplazamos "client@"
+if (!empty($nombre)) {
+    $comentario = str_replace("client@", $nombre, $comentario);
+}
 
-                        </div>
-                    </td>                   
-                </tr>
-                <tr>
-                    <th><button type="submit" class="btn btn-success btn-block btn-salvar" name="salvar">
-                            1. Salvar
-                        </button>
-                    </form>
+// Si se va a salvar, el mensaje actual es el que persiste en el textarea
+if (isset($_POST['salvar'])) {
+    $comentario = $mensaje; 
+}
 
-                    <?php
-                    $mensaje = isset($_POST['mensaje']) ? $_POST['mensaje'] : '';
-                    //$formato1 = str_replace("\r", "<br>", $mensaje);
-                    $formato2 = str_replace("\r", "%0A", $mensaje);
-                    ?>
-                    </th>
-                    <td><form target="_blank" name="formulario" method="post" action='https://wa.me/34<?php echo (int)$_POST['telefono']; ?>?text=<?php echo $formato2; ?>'>
-                        <button type="submit" value="whatsappWeb" class="btn btn-success btn-block btn-whatsapp-web">2. A Whatsapp Web</button>
-                    </form></td>
-                </tr> 
-                <tr>
-                    
-                <td colspan="4">
-                <div>
-    <details>
-        <summary style="font-weight: bold; cursor: pointer;">¿Necesitas Ayuda?</summary>
-        <p style="font-size: 14px; margin-top: 10px;">
-            <strong>¡Bienvenido al formulario de envío de mensajes por WhatsApp!</strong><br><br>
-            Aquí tienes cómo funciona:<br>
-            1. Ingresa el nombre y el número de teléfono del destinatario.<br>
-            2. Escribe un mensaje personalizado o elige uno predefinido con los botones "C1", "C2", "C3" o "C4".<br>
-            3. Si ingresaste un nombre, reemplazaremos "fulanoa" en el mensaje por ese nombre.<br>
-            4. Usa el botón "1. Salvar" para guardar un mensaje personalizado.<br>
-            5. Usa "2. A Whatsapp Web" para ir a WhatsApp Web con el mensaje y el número prellenados.<br><br>
-            ¡Listo para enviar tus mensajes de manera rápida y sencilla!
-        </p>
-    </details>
-</div>    
-                
-             </td> 
-        </tr> 
+// Preparamos el enlace de WhatsApp Web (solo si hay un teléfono válido)
+$waLink = "";
+if (!empty($telefono) && ctype_digit($telefono)) {
+    // Cambiamos a WhatsApp Web:
+    $waLink = "https://web.whatsapp.com/send?phone=34{$telefono}&text=" . urlencode($mensaje);
+}
 
-            </table>
-        </div>
-        
-    </body>
+/**********************************************
+ * Fin de la Sección LÓGICA
+ **********************************************/
+?>
+
+<div class="container">
+    <div class="text-center mb-4">
+        <img src="logowha.png" alt="Logo" width="60" align="right">
+        <h2 class="mt-3">Enviar a WhatsApp</h2>
+    </div>
+
+    <!-- Formulario principal -->
+    <form action="index.php" method="post">
+        <table>
+            <tr>
+                <th>Nombre:</th>
+                <td>
+                    <input 
+                        type="text" 
+                        class="form-control" 
+                        name="nombre" 
+                        value="<?php echo htmlspecialchars($nombre, ENT_QUOTES); ?>"
+                    />
+                </td>
+            </tr>
+            <tr>
+                <th>Teléfono:</th>
+                <td>
+                    <input 
+                        type="text" 
+                        class="form-control" 
+                        name="telefono" 
+                        value="<?php echo htmlspecialchars($telefono, ENT_QUOTES); ?>"
+                        placeholder="Solo dígitos" 
+                    />
+                </td>
+            </tr>
+            <tr>
+                <th>Mensaje:</th>
+                <td>
+                    <textarea 
+                        class="form-control" 
+                        name="mensaje" 
+                        cols="50" 
+                        rows="6"
+                    ><?php
+                        // Si cargamos un cX, $comentario tiene prioridad
+                        // En caso de "salvar", el $mensaje es el que va al textarea
+                        echo htmlspecialchars(!empty($comentario) ? $comentario : $mensaje, ENT_QUOTES);
+                    ?></textarea>
+                </td>
+                <td rowspan="3" style="vertical-align: top;">
+                    <div class="button-group">
+                        <button class="btn btn-small btn-primary" name="c1">C1</button>
+                        <button class="btn btn-small btn-primary" name="c2">C2</button>
+                        <button class="btn btn-small btn-primary" name="c3">C3</button>
+                        <button class="btn btn-small btn-primary" name="c4">C4</button>
+                        <a class="btn btn-small btn-primary btn-conf" href="configuracion.php">Conf.</a>
+                    </div>
+                </td>
+            </tr>
+            <!-- Botón salvar -->
+            <tr>
+                <th>
+                    <button 
+                        type="submit" 
+                        class="btn btn-success btn-block btn-salvar" 
+                        name="salvar"
+                    >
+                        1. Salvar
+                    </button>
+                </th>
+                <td>
+                    <div class="text-center">
+                        <?php if (!empty($waLink)): ?>
+                            <!-- Enlace a WhatsApp Web solo si el teléfono es válido -->
+                            <a 
+                                href="<?php echo $waLink; ?>" 
+                                target="_blank" 
+                                class="btn btn-success" 
+                                style="width:400px;"
+                            >
+                                2. A Whatsapp Web
+                            </a>
+                        <?php else: ?>
+                            <p style="color:red;">
+                                Ingresa un teléfono válido para activar el enlace a WhatsApp.
+                            </p>
+                        <?php endif; ?>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2">
+                    <details>
+                        <summary style="font-weight: bold; cursor: pointer;">¿Necesitas Ayuda?</summary>
+                        <p style="font-size: 14px; margin-top: 10px;">
+                            <strong>¡Bienvenido al formulario de envío de mensajes por WhatsApp!</strong><br><br>
+                            Aquí tienes cómo funciona:<br>
+                            1. Ingresa el nombre y el número de teléfono del destinatario.<br>
+                            2. Escribe un mensaje personalizado o elige uno predefinido con los botones "C1", "C2", "C3" o "C4".<br>
+                            3. Si ingresaste un nombre, reemplazaremos "client@" en el mensaje por ese nombre.<br>
+                            4. Usa el botón "1. Salvar" para guardar un mensaje personalizado.<br>
+                            5. Usa "2. A Whatsapp Web" para ir a WhatsApp Web con el mensaje y el número prellenados (no necesitas la app de escritorio).<br><br>
+                            ¡Listo para enviar tus mensajes de manera rápida y sencilla!
+                        </p>
+                    </details>
+                </td>
+            </tr>
+        </table>
+    </form>
+</div>
+
+</body>
 </html>
