@@ -131,17 +131,24 @@
                         <textarea class="form-control" name="mensaje" cols="50" rows="6"><?php
                             $comentario = '';
 
+                            $comentarios = array_fill(1, 4, '');
+                            if (file_exists("comentarios.sav")) {
+                                $cData = file_get_contents("comentarios.sav");
+                                if ($cData !== false) {
+                                    $tmp = unserialize($cData);
+                                    if (is_array($tmp)) {
+                                        $comentarios = $tmp + $comentarios;
+                                    }
+                                }
+                            }
+
                             if (isset($_POST['c1'])) {
-                                $comentarios = unserialize(file_get_contents("comentarios.sav"));
                                 $comentario = $comentarios[1];
                             } elseif (isset($_POST['c2'])) {
-                                $comentarios = unserialize(file_get_contents("comentarios.sav"));
                                 $comentario = $comentarios[2];
                             } elseif (isset($_POST['c3'])) {
-                                $comentarios = unserialize(file_get_contents("comentarios.sav"));
                                 $comentario = $comentarios[3];
                             } elseif (isset($_POST['c4'])) {
-                                $comentarios = unserialize(file_get_contents("comentarios.sav"));
                                 $comentario = $comentarios[4];
                             }
 
@@ -179,7 +186,7 @@
                     $formato2 = str_replace("\r", "%0A", $mensaje);
                     ?>
                     </th>
-                    <td><form target="_blank" name="formulario" method="post" action='https://wa.me/34<?php echo (int)$_POST['telefono']; ?>?text=<?php echo $formato2; ?>'>
+                    <td><form target="_blank" name="formulario" method="post" action='https://wa.me/34<?php echo isset($_POST['telefono']) ? (int)$_POST['telefono'] : ''; ?>?text=<?php echo $formato2; ?>'>
                         <button type="submit" value="whatsappWeb" class="btn btn-success btn-block btn-whatsapp-web">2. A Whatsapp Web</button>
                     </form></td>
                 </tr> 
